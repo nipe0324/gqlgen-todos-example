@@ -1,0 +1,13 @@
+version: '3'
+services:
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: root
+      MYSQL_DATABASE: gqlgentodos
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_bin
+    ports:
+      - "13306:3306" # 他のmysqlとポート番号が衝突するのを避けるため 13306

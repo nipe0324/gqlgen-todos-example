@@ -5,28 +5,45 @@ package graph
 
 import (
 	"context"
-	"fmt"
-	"math/rand"
 
+	"github.com/nipe0324/gqlgen-todos-example/db"
 	"github.com/nipe0324/gqlgen-todos-example/graph/generated"
 	"github.com/nipe0324/gqlgen-todos-example/graph/model"
 )
 
 func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error) {
-	todo := &model.Todo{
-		ID:   fmt.Sprintf("T%d", rand.Int()), // import "math/rand" not "crypt/rand"
-		Text: input.Text,
-		User: &model.User{
-			ID:   input.UserID,
-			Name: "user " + input.UserID,
-		},
+	currentUser, err := r.getCurrentUser()
+	if err != nil {
+		return nil, err
 	}
-	r.todos = append(r.todos, todo)
-	return todo, nil
+
+	todo := db.Todo{
+		Text:   input.Text,
+		UserID: currentUser.ID,
+		User:   *currentUser,
+	}
+
+	err = r.conn.Create(&todo).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return toGqlTodo(&todo), nil
 }
 
 func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
-	return r.todos, nil
+	currentUser, err := r.getCurrentUser()
+	if err != nil {
+		return nil, err
+	}
+
+	var todos []*db.Todo
+	err = r.conn.Preload("User").Where(db.Todo{UserID: currentUser.ID}).Find(&todos).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return toGqlTodos(todos), nil
 }
 
 // Mutation returns generated.MutationResolver implementation.
