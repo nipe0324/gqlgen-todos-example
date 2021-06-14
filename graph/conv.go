@@ -25,10 +25,10 @@ func toGqlTodo(t *db.Todo) *model.Todo {
 	}
 
 	return &model.Todo{
-		ID:   fmt.Sprintf("%d", t.ID),
-		Text: t.Text,
-		Done: t.Done,
-		User: toGqlUser(&t.User),
+		ID:     fmt.Sprintf("%d", t.ID),
+		Text:   t.Text,
+		Done:   t.Done,
+		UserID: t.UserID,
 	}
 }
 
