@@ -6,6 +6,7 @@ package graph
 import (
 	"context"
 
+	"github.com/nipe0324/gqlgen-todos-example/dataloader"
 	"github.com/nipe0324/gqlgen-todos-example/db"
 	"github.com/nipe0324/gqlgen-todos-example/graph/generated"
 	"github.com/nipe0324/gqlgen-todos-example/graph/model"
@@ -46,13 +47,13 @@ func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
 }
 
 func (r *todoResolver) User(ctx context.Context, obj *model.Todo) (*model.User, error) {
-	var user db.User
-	err := r.conn.Where(db.User{ID: obj.UserID}).First(&user).Error
+	// データローダーからユーザ情報を取得
+	user, err := dataloader.For(ctx).UserByID.Load(obj.UserID)
 	if err != nil {
 		return nil, err
 	}
 
-	return toGqlUser(&user), nil
+	return toGqlUser(user), nil
 }
 
 // Mutation returns generated.MutationResolver implementation.
